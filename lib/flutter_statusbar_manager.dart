@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -115,13 +116,24 @@ class FlutterStatusbarManager {
     return await _channel.invokeMethod("getHeight");
   }
 
-  static setFullscreen(bool value) {
-    if (kIsWeb) return;
-    if (value) {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual, overlays: []);
-    } else {
-      SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-          overlays: SystemUiOverlay.values);
+  static Future<double> get getNavigationHeight async {
+    return await _channel.invokeMethod("getNavigationHeight");
+  }
+
+  static void setFullscreen(bool value) async {
+    if(Platform.isAndroid){
+      _channel.invokeMethod("setFullscreen", {
+        'hidden': value,
+      });
+      setNavigationBarColor(Colors.transparent);
+    }else{
+      setHidden(value,
+          animation: StatusBarAnimation.SLIDE);
+      if (value) {
+        SystemChrome.setEnabledSystemUIOverlays([]);
+      } else {
+        SystemChrome.setEnabledSystemUIOverlays(SystemUiOverlay.values);
+      }
     }
   }
 }
